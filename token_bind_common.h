@@ -1,0 +1,164 @@
+/* Copyright 2016 Google Inc. All Rights Reserved.
+   Author: waywardgeek@gmail.com (Bill Cox)
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License. */
+
+#ifndef TOKEN_BIND_CSRC_TOKEN_BIND_COMMON_H_
+#define TOKEN_BIND_CSRC_TOKEN_BIND_COMMON_H_
+
+/* This library implements client-side functionality of Token Binding, as
+   specified in: https://datatracker.ietf.org/doc/draft-ietf-tokbind-protocol
+
+   In essence, Token Binding is the next version of Channel ID.  It is on track
+   to become an IETF standard. */
+
+#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+struct ssl_st;
+typedef struct ssl_st SSL;
+struct ssl_ctx_st;
+typedef struct ssl_ctx_st SSL_CTX;
+struct evp_pkey_ctx_st;
+typedef struct evp_pkey_ctx_st EVP_PKEY_CTX;
+
+/* tbKeyType defines key parameter combos supported for Token Binding key
+   pairs. */
+typedef enum {
+  TB_RSA2048_PKCS15 = 0,
+  TB_RSA2048_PSS = 1,
+  TB_ECDSAP256 = 2,
+  TB_INVALID_KEY_TYPE = 255,
+} tbKeyType;
+
+/* Hash length of SHA256 in bytes */
+#define TB_HASH_LEN 32
+
+/* These are used to parse Token Binding messages. */
+enum tbTokenBindingType { TB_PROVIDED = 0, TB_REFERRED = 1 };
+
+/* Major/minor version numbers for the version of Token Binding negotiated over
+   TLS.  The 0 major version means this is still experimental. */
+#define TB_MAJOR_VERSION 0
+#define TB_MINOR_VERSION 10
+/* Formats for token binding headers changed while the spec was being finalized.
+   Require this version to ensure that clients do not send the old formats. */
+#define TB_MIN_SUPPORTED_MAJOR_VERSION 0
+#define TB_MIN_SUPPORTED_MINOR_VERSION 10
+
+/* tbGetKeyType returns the key type of |tokbind_id|, which must be a public key
+   encoded in token binding format (a TokenBindingID).  Call tbEncodeKey to
+   obtain this string. */
+tbKeyType tbGetKeyType(const uint8_t* tokbind_id, size_t tokbind_id_len);
+
+/* Return a string representing the key type in ASCII. */
+const char* tbGetKeyTypeName(tbKeyType key_type);
+
+/* tbTLSLibInit must be called once before calling
+   tbEnableTLSTokenBindingNegotiation.  True is returned if the library
+   initializes successfully. */
+bool tbTLSLibInit(void);
+
+/* tbEnableTLSTokenBindingNegotiation enables token binding on SSL connections
+   created from |ssl_ctx|.  It can be called for client and server connections.
+   By default, all key types are enabled, with preference order: ECDSAP256,
+   RSA2048_PSS, RSA2048_PKCS15.  true is returned on success.  tbTLSLibInit must
+   be called before this function. */
+bool tbEnableTLSTokenBindingNegotiation(SSL_CTX* ssl_ctx);
+
+/* tbUpdateKeyTypes is used to change the key types used on a context after
+   tbEnableTLSTokenBindingNegotiation has been called.  This can be used to
+   change the key types without having to rebuild the context. */
+void tbUpdateKeyTypes(SSL_CTX* ssl_ctx, const uint8_t* key_types,
+                      size_t num_key_types);
+
+/* tbTokenBindingEnabled returns the negotiated key type only if |ssl|
+   has successfully negotiated token binding, and also the extended master
+   secret extension was negotiated.  If |out_key_type| is not nullptr, it will
+   be set to the negotiated key type. */
+bool tbTokenBindingEnabled(const SSL* ssl, tbKeyType* out_key_type);
+
+/* tbGetEKM generates a hash of the handshake messages to generate a unique
+   value cryptographically bound to this SSL connection.  If the handshake is
+   not yet complete, then false is returned.  The result is allocated in a new
+   buffer which the caller owns.  For the definition of EKM, see
+   https://datatracker.ietf.org/doc/draft-ietf-tokbind-protocol */
+bool tbGetEKM(const SSL* ssl, uint8_t out[TB_HASH_LEN]);
+
+/* tbGetDataToSign returns the data signed in a token binding message.  It just
+ * concatenates the input parameters to form the string to sign. */
+void tbGetDataToSign(uint8_t* ekm, tbKeyType key_type, bool referred,
+                     uint8_t** out_data, size_t* out_data_len);
+
+/* The following conversion functions are provided to aid supporting token
+   binding using libraries other than OpenSSL, which support the same key and
+   signature formats as OpenSSL.  In this context, "DER" encoding means OpenSSL
+   encoding, which is only sometimes actual DER encoding.  The latest token
+   binding message format can be found at:
+   https://tools.ietf.org/wg/tokbind/draft-ietf-tokbind-protocol */
+
+/* tbConvertDerKeyToTokenBindingID creates a token binding formatted public key
+   string (a "TokenBindingID") from a DER encoded byte array generated by
+   popular tools such as OpenSSL.  If the input is not formatted properly, false
+   is returned.  The result is allocated in a new buffer which the caller
+   owns. */
+bool tbConvertDerKeyToTokenBindingID(const uint8_t* der_key, size_t der_key_len,
+                                     tbKeyType key_type,
+                                     uint8_t** out_tokbind_id,
+                                     size_t* out_tokbind_id_len);
+
+/* tbConvertTokenBindingIDToDerKey converts a token binding public key string
+   (a TokenBindingID) to a DER encoded byte array which is compatible with
+   popular tools such as OpenSSL.  If the input is not formatted properly, false
+   is returned.  The result is allocated in a new buffer which the caller
+   owns. */
+bool tbConvertTokenBindingIDToDerKey(const uint8_t* tokbind_id,
+                                     size_t tokbind_id_len,
+                                     tbKeyType* out_key_type, uint8_t** out_key,
+                                     size_t* out_key_len);
+
+/* tbConvertDerSigToTokenBindingSig creates a token binding formatted signature
+   string from a DER encoded byte array generated by popular tools such as
+   OpenSSL.  If the input is not formatted properly, false is returned.  The
+   result is allocated in a new buffer which the caller owns. */
+bool tbConvertDerSigToTokenBindingSig(const uint8_t* der_sig,
+                                      size_t der_sig_len, tbKeyType key_type,
+                                      uint8_t** out_sig, size_t* out_sig_len);
+
+/* tbConvertTokenBindingSigToDerSig converts a token binding signature string to
+   a DER encoded byte array which is compatible with popular tools such as
+   OpenSSL.  If the input is not formatted properly, false is returned.  The
+   result is allocated in a new buffer which the caller owns. */
+bool tbConvertTokenBindingSigToDerSig(const uint8_t* tb_sig, size_t tb_sig_len,
+                                      tbKeyType key_type, uint8_t** out_sig,
+                                      size_t* out_sig_len);
+
+/* tbSetClientVersion sets the version of token binding that will be negotiated
+   during the TLS handshake.  This applies globally, and is meant to be used
+   only to test version negotation. */
+void tbSetClientVersion(int major_version, int minor_version);
+
+/* tbSetPadding sets the padding type of |key_ctx| based on |key_type|.  It does
+   nothing for TB_ECDSAP256.  It sets the padding scheme to PKCS15 for
+   TB_RSA2048_PKCS15, and to PKCS15_PSS for TB_RSA2048_PSS, with salt length
+   equal to the length of the hash digest, which is SHA256. */
+bool tbSetPadding(tbKeyType key_type, EVP_PKEY_CTX* key_ctx);
+
+/* tbHashTokenBindingID computes the SHA256 hash digest of the token binding
+   public key, which is a called TokenBindingID in the RFC Token Binding
+   docs. */
+void tbHashTokenBindingID(const uint8_t* tokbind_id, size_t tokbind_id_len,
+                          uint8_t hash_out[TB_HASH_LEN]);
+
+#endif  /* TOKEN_BIND_CSRC_TOKEN_BIND_COMMON_H_ */

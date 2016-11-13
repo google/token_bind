@@ -1,0 +1,25 @@
+From bc95dcfda999e7980bf1fdf20ec5df5384147118 Mon Sep 17 00:00:00 2001
+From: Bill Cox <waywardgeek@google.com>
+Date: Sat, 5 Nov 2016 10:45:58 -0700
+Subject: [PATCH] Enable custom extensions on resume
+
+---
+ ssl/t1_lib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ssl/t1_lib.c b/ssl/t1_lib.c
+index 86833d8..6ed3342 100644
+--- a/ssl/t1_lib.c
++++ b/ssl/t1_lib.c
+@@ -2175,7 +2175,7 @@ static int ssl_scan_clienthello_tlsext(SSL *s, PACKET *pkt, int *al)
+          * callback and record the extension number so that an appropriate
+          * ServerHello may be later returned.
+          */
+-        else if (!s->hit) {
++        else {
+             if (custom_ext_parse(s, 1, type, PACKET_data(&extension),
+                                  PACKET_remaining(&extension), al) <= 0)
+                 return 0;
+-- 
+2.8.0.rc3.226.g39d4020
+
