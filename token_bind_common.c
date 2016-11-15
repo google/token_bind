@@ -398,8 +398,11 @@ static bool getDerUint(tbCBS* uint_cbs, uint8_t* out_buf, size_t buf_len) {
 
 /* Similarly, to encode an unsigned int, we need to add a leading 0 if the MSB
    is 1, and if we have leading 0-bytes, we strip them unless the next byte MSB
-   is set. */
+   is set, or if the only byte left is a 0. */
 static bool addDerUint(tbCBB* uint_cbb, const uint8_t* in_buf, size_t length) {
+  if (length == 0) {
+    return false;
+  }
   size_t pos = 0;
   /* Strip leading 0's except for the last byte. */
   while (pos + 1 < length && in_buf[pos] == 0) {
