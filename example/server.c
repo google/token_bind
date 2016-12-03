@@ -258,7 +258,7 @@ uint64_t hashTokenBindingIDAndCookieSecret(uint8_t* tokbind_id,
   SHA256_Update(&sha256, kCookieSecret, strlen(kCookieSecret));
   SHA256_Final(hash, &sha256);
   uint64_t hash64 = 0;
-  int i;
+  size_t i;
   for (i = 0; i < sizeof(uint64_t); i++) {
     hash64 = (hash64 << 8) | hash[i];
   }

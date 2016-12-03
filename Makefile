@@ -1,7 +1,7 @@
 # Change this to point to your openssl source.
 OPENSSL_DIR=openssl
 CC=gcc
-CFLAGS=-Wall -O3 -std=c99 -fpic -pthread -I$(OPENSSL_DIR)/include
+CFLAGS=-Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -fpic -pthread -I$(OPENSSL_DIR)/include
 
 all: token_bind_client.so token_bind_server.so base64.so
 

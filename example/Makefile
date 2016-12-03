@@ -2,7 +2,7 @@
 OPENSSL_DIR=../openssl
 
 CC=gcc
-CFLAGS=-D_GNU_SOURCE -Wall -O3 -std=c99 -fpic -pthread -I$(OPENSSL_DIR)/include -I..
+CFLAGS=-D_GNU_SOURCE -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -fpic -pthread -I$(OPENSSL_DIR)/include -I..
 LIBS= $(OPENSSL_DIR)/libssl.a $(OPENSSL_DIR)/libcrypto.a -ldl
 
 all: client server
