@@ -104,6 +104,11 @@ static bool tbKeyTypeVectHasKeyType(const tbKeyTypeVect* key_type_vect,
 /* Callback for cleaning up the tbKeyTypeVect we store on the SSL_CTX. */
 static void freeKeyTypeVect(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
                             int idx, long argl, void* argp) {
+  (void)parent;
+  (void)ad;
+  (void)idx;
+  (void)argl;
+  (void)argp;
   tbKeyTypeVectDestroy((tbKeyTypeVect*)ptr);
 }
 
@@ -206,6 +211,9 @@ static void getNegotiatedVersion(SSL* ssl, uint8_t* out) {
 static int extensionAddServerCallback(SSL* ssl, unsigned ext_type,
                                       const uint8_t** out, size_t* out_len,
                                       int* al, void* arg) {
+  (void)ext_type;
+  (void)al;
+  (void)arg;
   tbKeyType key_type = getNegotiatedKeyType(ssl);
   if (key_type >= TB_INVALID_KEY_TYPE) {
     /* Failed to negotiate a key type, so do not add the extension. */
@@ -231,6 +239,9 @@ static int extensionAddServerCallback(SSL* ssl, unsigned ext_type,
 static int extensionAddClientCallback(SSL* ssl, unsigned ext_type,
                                       const uint8_t** out, size_t* out_len,
                                       int* al, void* arg) {
+  (void)ext_type;
+  (void)al;
+  (void)arg;
   const tbKeyTypeVect* key_type_vect = getContextKeyTypes(SSL_get_SSL_CTX(ssl));
   size_t num_key_types = key_type_vect->num_key_types;
   if (key_type_vect == NULL || num_key_types == 0 ||
@@ -277,8 +288,7 @@ static tbKeyType findCommonKeyType(const SSL* ssl, const uint8_t* keys,
 }
 
 /* findMutalVersion chooses a mutual version. */
-static bool findMutualVersion(const unsigned char* in, size_t in_len,
-                              uint8_t version[2]) {
+static bool findMutualVersion(const unsigned char* in, uint8_t version[2]) {
   version[0] = TB_MAJOR_VERSION;
   version[1] = TB_MINOR_VERSION;
   if (in[kMajorVersionPos] < version[kMajorVersionPos] ||
@@ -307,13 +317,15 @@ static bool findMutualVersion(const unsigned char* in, size_t in_len,
 static int extensionParseServerCallback(SSL* ssl, unsigned ext_type,
                                         const unsigned char* in, size_t in_len,
                                         int* al, void* arg) {
+  (void)ext_type;
+  (void)arg;
   /* Verify the length field is valid. */
   if (in_len < kHeaderSize || in[kLengthPos] + kHeaderSize != in_len) {
     *al = SSL3_AD_HANDSHAKE_FAILURE;
     return 0;  /* Invalid format - this will terminate the connection. */
   }
   uint8_t version[2];
-  if (!findMutualVersion(in, in_len, version)) {
+  if (!findMutualVersion(in, version)) {
     return 1;
   }
   setNegotiatedVersion(ssl, version[0], version[1]);
@@ -334,13 +346,15 @@ static int extensionParseServerCallback(SSL* ssl, unsigned ext_type,
 static int extensionParseClientCallback(SSL* ssl, unsigned ext_type,
                                         const unsigned char* in, size_t in_len,
                                         int* al, void* arg) {
+  (void)ext_type;
+  (void)arg;
   /* Verify the length field is valid. */
   if (in_len < kHeaderSize || in[kLengthPos] + kHeaderSize != in_len) {
     *al = SSL3_AD_HANDSHAKE_FAILURE;
     return 0;  /* Invalid format - this will terminate the connection. */
   }
   uint8_t version[2];
-  if (!findMutualVersion(in, in_len, version)) {
+  if (!findMutualVersion(in, version)) {
     return 1;
   }
   setNegotiatedVersion(ssl, version[0], version[1]);
@@ -367,6 +381,9 @@ static int extensionParseClientCallback(SSL* ssl, unsigned ext_type,
 
 static void freeTLSOutData(SSL* ssl, unsigned extension_value,
                            const uint8_t* out, void* add_arg) {
+  (void)ssl;
+  (void)extension_value;
+  (void)add_arg;
   free((uint8_t*)out);
 }
 
