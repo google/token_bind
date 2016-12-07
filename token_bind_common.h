@@ -26,12 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct ssl_st;
-typedef struct ssl_st SSL;
-struct ssl_ctx_st;
-typedef struct ssl_ctx_st SSL_CTX;
-struct evp_pkey_ctx_st;
-typedef struct evp_pkey_ctx_st EVP_PKEY_CTX;
+#include <openssl/ossl_typ.h>
 
 /* tbKeyType defines key parameter combos supported for Token Binding key
    pairs. */
