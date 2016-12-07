@@ -21,7 +21,6 @@
 #include "tb_bytestring.h"
 
 static const size_t kCoordSize = 32;
-static const size_t kModulusSize = 2048;
 
 /* IANA-assigned Token Binding TLS extension number */
 static const int kTOKEN_BIND_EXTENSION_TYPE = 24;
