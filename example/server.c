@@ -488,6 +488,8 @@ void processRequest(char* request, Connection* connection) {
 }
 
 int main(int argc, char** argv) {
+  (void)argc;
+  (void)argv;
   uint64_t rand_seed = 0; /* This prevents collision attacks on the cache. */
   RAND_seed(&rand_seed, sizeof(uint64_t));
   tbCacheLibInit(

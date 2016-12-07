@@ -114,13 +114,6 @@ char* copystring(char* source) {
   return dest;
 }
 
-char* copynstring(char* source, size_t length) {
-  size_t len = strlen(source);
-  char* dest = checkedCalloc(len + 1, sizeof(char));
-  strcpy(dest, source);
-  return dest;
-}
-
 /* Parse the host, path, and port number from the url. */
 void parseHostPathAndPort(char* url, char** out_hostname, char** out_path,
                           int* out_port) {
