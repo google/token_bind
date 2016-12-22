@@ -98,6 +98,10 @@ bool tbCacheVerifyTokenBindingMessage(
     uint8_t** out_tokbind_id, size_t* out_tokbind_id_len,
     uint8_t** out_referred_tokbind_id, size_t* out_referred_tokbind_id_len);
 
+/* GetStatusString returns a web-safe string that describes the cache status.
+   The string can be written to logs or appended to headers for debugging. */
+const char* tbCacheGetStatusString(tbCacheStatus status);
+
 /* tbDecodeTokenBindingID converts a key string in token Binding format
    (TokenBindingID) to a Token Binding compatible EVP_PKEY, and sets
    |out_key_type| to the Token Binding type of the key.  If |key| is not a valid

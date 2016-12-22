@@ -29,7 +29,9 @@ struct tbCacheStruct {
   tbCacheStatus status;
 };
 
-tbCacheStatus tbCacheGetStatus(tbCache* cache) { return cache->status; }
+tbCacheStatus tbCacheGetStatus(tbCache* cache) {
+  return cache->status;
+}
 
 /* extractTokenBindingID extracts the sub-string of |message_contents| that
    represent the public key (a TokenBindingID), starting with the KeyType byte.
@@ -174,6 +176,7 @@ tbCache* tbCacheCreate(void) {
   if (cache == NULL) {
     return NULL;
   }
+  cache->status = TB_CACHE_OK;
   return cache;
 }
 
@@ -212,7 +215,7 @@ static int findHashInCache(tbCache* cache, uint64_t hash) {
 }
 
 /* Lookup the message in the message cache.  Return true if it is there. */
-static bool tbCacheLookup(tbCache* cache, const uint8_t* message,
+static bool cacheLookup(tbCache* cache, const uint8_t* message,
                           size_t message_len) {
   uint64_t hash = fastHash(tbCacheNonce, message, message_len);
   int pos = findHashInCache(cache, hash);
@@ -235,7 +238,7 @@ static bool isPowerOfTwo(uint32_t x) {
 
 /* Add the hash of the message to the message hash cache.  This sets the error
    code to TB_WARNING_CACHE_OVERFLOW if the cache overflowed. */
-static void tbCacheAdd(tbCache* cache, const uint8_t* message,
+static void cacheAdd(tbCache* cache, const uint8_t* message,
                        size_t message_len) {
   uint64_t hash = fastHash(tbCacheNonce, message, message_len);
   if (findHashInCache(cache, hash) != -1) {
@@ -285,7 +288,7 @@ bool tbCacheMessageAlreadyVerified(tbCache* cache, const uint8_t* message,
     cache->status = TB_CACHE_INVALID_FORMAT;
     return false;
   }
-  if (!tbCacheLookup(cache, message, message_len)) {
+  if (!cacheLookup(cache, message, message_len)) {
     cache->status = TB_CACHE_MISS;
     return false;
   }
@@ -425,7 +428,7 @@ bool tbCacheVerifyTokenBindingMessage(
     goto err;
   }
   cache->status = TB_CACHE_GOOD_SIGNATURE;
-  tbCacheAdd(cache, message, message_len);
+  cacheAdd(cache, message, message_len);
   return true;
 err:
   if (evp_key != NULL) {
@@ -438,6 +441,28 @@ err:
     free(dersig);
   }
   return false;
+}
+
+const char* tbCacheGetStatusString(tbCacheStatus status) {
+  switch (status) {
+    case TB_CACHE_OK:
+      return "cache-ok";
+    case TB_CACHE_BAD_SIGNATURE:
+      return "bad-signature";
+    case TB_CACHE_GOOD_SIGNATURE:
+      return "good-signature";
+    case TB_CACHE_HIT:
+      return "cache-hit";
+    case TB_CACHE_INVALID_FORMAT:
+      return "invalid-format";
+    case TB_CACHE_MEMORY_ERROR:
+      return "memory-error";
+    case TB_CACHE_MISS:
+      return "cache-miss";
+    case TB_CACHE_OVERFLOW:
+      return "cache-overflow";
+  }
+  return NULL;
 }
 
 EVP_PKEY* tbDecodeTokenBindingID(const uint8_t* tokbind_id,
