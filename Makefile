@@ -1,5 +1,5 @@
-# Change this to point to your openssl source.
-OPENSSL_DIR=openssl
+# Change this to point to your openssl installation.
+OPENSSL_DIR=/usr/local
 CC=gcc
 CFLAGS=-Wall -Wextra -O3 -std=c99 -fpic -pthread -I$(OPENSSL_DIR)/include
 LDFLAGS=-L$(OPENSSL_DIR)/lib -lssl -lcrypto
