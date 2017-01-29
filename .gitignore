@@ -1,3 +1,4 @@
 /.project
+/.settings/
+/.cproject
 /*.so
-/base64.so
