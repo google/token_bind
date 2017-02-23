@@ -46,9 +46,9 @@ enum tbTokenBindingType { TB_PROVIDED = 0, TB_REFERRED = 1 };
 /* Major/minor version numbers for the version of Token Binding negotiated over
    TLS.  The 0 major version means this is still experimental. */
 #define TB_MAJOR_VERSION 0
-#define TB_MINOR_VERSION 10
-/* Formats for token binding headers changed while the spec was being finalized.
-   Require this version to ensure that clients do not send the old formats. */
+#define TB_MINOR_VERSION 13
+
+/* Require this version to ensure that clients do not send the old formats. */
 #define TB_MIN_SUPPORTED_MAJOR_VERSION 0
 #define TB_MIN_SUPPORTED_MINOR_VERSION 10
 
