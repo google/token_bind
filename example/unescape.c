@@ -13,7 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License. */
 
-/* This is a simple utility to translate web-base64 to hex. */
+/* This is a simple utility to translate web-base64 to hex.  It also prints the
+   status for verifying a token binding header.  It generally fails signature
+   verification, since the EKM is not available. */
 
 #include <base64.h>
 #include <stdbool.h>
