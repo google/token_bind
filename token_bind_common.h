@@ -156,4 +156,9 @@ bool tbSetPadding(tbKeyType key_type, EVP_PKEY_CTX* key_ctx);
 void tbHashTokenBindingID(const uint8_t* tokbind_id, size_t tokbind_id_len,
                           uint8_t hash_out[TB_HASH_LEN]);
 
+/* getNegotiatedVersion retrieves the negotiated major and minor version from
+   |ssl|.  The major version number is written to out[0], and and the minor
+   version number is written to out[1]. */
+void getNegotiatedVersion(SSL* ssl, uint8_t* out);
+
 #endif  /* TOKEN_BIND_CSRC_TOKEN_BIND_COMMON_H_ */
