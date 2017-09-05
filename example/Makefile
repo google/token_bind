@@ -1,10 +1,10 @@
-# Change this to point to your openssl source.
-OPENSSL_DIR=../openssl
+# Change this to point to your openssl installation.
+OPENSSL_DIR=/usr/local
 
 CC=gcc
 CFLAGS=-D_GNU_SOURCE -Wall -Wextra -O3 -std=c99 -fpic -pthread -I$(OPENSSL_DIR)/include -I..
 #CFLAGS=-D_GNU_SOURCE -Wall -Wextra -g -std=c99 -fpic -pthread -I$(OPENSSL_DIR)/include -I..
-LIBS= $(OPENSSL_DIR)/libssl.a $(OPENSSL_DIR)/libcrypto.a -ldl
+LIBS= $(OPENSSL_DIR)/lib/libssl.a $(OPENSSL_DIR)/lib/libcrypto.a -ldl
 
 all: client server unescape
 
