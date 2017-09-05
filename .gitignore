@@ -1,0 +1,8 @@
+/.project
+/.settings/
+/.cproject
+/*.so
+/.libs/
+/*.slo
+/*.lo
+/*.o
