@@ -246,7 +246,7 @@ static void cacheAdd(tbCache* cache, const uint8_t* message,
   }
   if (cache->num_message_hashes == 0) {
     cache->message_hashes = calloc(2, sizeof(uint64_t));
-    if (cache == NULL) {
+    if (cache->message_hashes == NULL) {
       cache->status = TB_CACHE_MEMORY_ERROR;
       return;
     }
