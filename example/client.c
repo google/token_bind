@@ -143,6 +143,7 @@ void parseHostPathAndPort(char* url, char** out_hostname, char** out_path,
       port = strtol(p, &endptr, 10);
       if (endptr == p) {
         printf("Invalid port number\n");
+        free(hostname);
         usage();
       }
       p = endptr;
@@ -152,6 +153,7 @@ void parseHostPathAndPort(char* url, char** out_hostname, char** out_path,
     } else {
       if (*p != '/') {
         printf("Expecting / in url\n");
+        free(hostname);
         usage();
       }
       path = copystring(p);
@@ -767,6 +769,12 @@ int main(int argc, char** argv) {
   ret = 0;
 
 err:
+  if (hostname != NULL) {
+    free(hostname);
+  }
+  if (path != NULL) {
+    free(path);
+  }
   closeConnection(connection);
   return ret;
 }
