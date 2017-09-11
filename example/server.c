@@ -379,7 +379,7 @@ bool getRequestTokenBindingID(char* request, Connection* connection,
   char* tbheader = findRequestHeader(request, "sec-token-binding");
   if (tbheader == NULL) {
     printf("No token binding header in request\n");
-    return NULL;
+    return false;
   }
   printf("Found token binding header: %s\n", tbheader);
   uint8_t* referred_tokbind_id;
