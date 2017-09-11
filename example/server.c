@@ -161,11 +161,11 @@ void closeConnection(Connection* connection) {
 char* readRequest(Connection* connection) {
   char buffer[kBufferSize];
   int num_bytes = SSL_read(connection->ssl, buffer, kBufferSize);
-  buffer[num_bytes] = '\0';
   if (num_bytes <= 0) {
     printf("Could not read with return val %u\n", num_bytes);
     return NULL;
   }
+  buffer[num_bytes] = '\0';
   printf("Here is the message:\n%s\n", buffer);
   return copystring(buffer);
 }
