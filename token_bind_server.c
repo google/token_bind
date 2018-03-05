@@ -16,6 +16,7 @@
 #include "token_bind_server.h"
 
 #include <openssl/ec.h>
+#include <openssl/mem.h>
 #include <openssl/rsa.h>
 #include <stdlib.h>
 #include <string.h>
@@ -398,7 +399,7 @@ bool tbCacheVerifyTokenBindingMessage(
       cache->status = TB_CACHE_BAD_SIGNATURE;
       goto err;
     }
-    free(dersig);
+    OPENSSL_free(dersig);
     dersig = NULL;
     EVP_MD_CTX_destroy(md_ctx);
     md_ctx = NULL;
