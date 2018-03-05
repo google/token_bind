@@ -15,6 +15,7 @@
 
 #include "token_bind_common.h"
 
+#include <openssl/mem.h>
 #include <openssl/sha.h>
 #include <openssl/ssl.h>
 #include <string.h>
@@ -769,7 +770,7 @@ bool tbConvertTokenBindingSigToDerSig(const uint8_t* tb_sig, size_t tb_sig_len,
         return false;
       }
       *out_sig_len = tb_sig_len;
-      *out_sig = calloc(*out_sig_len, sizeof(uint8_t));
+      *out_sig = OPENSSL_malloc(out_sig_len * sizeof(uint8_t));
       if (*out_sig == NULL) {
         return false;
       }
