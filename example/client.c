@@ -143,6 +143,7 @@ void parseHostPathAndPort(char* url, char** out_hostname, char** out_path,
       port = strtol(p, &endptr, 10);
       if (endptr == p) {
         printf("Invalid port number\n");
+        free(hostname);
         usage();
       }
       p = endptr;
@@ -152,6 +153,7 @@ void parseHostPathAndPort(char* url, char** out_hostname, char** out_path,
     } else {
       if (*p != '/') {
         printf("Expecting / in url\n");
+        free(hostname);
         usage();
       }
       path = copystring(p);
@@ -532,6 +534,7 @@ void closeConnection(Connection* connection) {
   printf("closing connection\n");
   SSL_shutdown(connection->ssl);
   SSL_free(connection->ssl);
+  SSL_CTX_free(connection->ctx);
   close(connection->server_fd);
   free(connection);
 }
@@ -726,27 +729,28 @@ int main(int argc, char** argv) {
   if (type == HTTP_UNKNOWN) {
     usage();
   }
-  char* hostname;
-  char* path;
-  int port;
+  char* hostname, *path, *tbheader, *cookies, *response, *etld_plus1;
+  int ret = 1, port;
+  CookieJar *cookie_jar;
+  Oracle *oracle;
+
   parseHostPathAndPort(argv[2], &hostname, &path, &port);
   Connection* connection = openConnection(hostname, port);
   if (connection == NULL) {
     printf("Could not connect to %s:%u\n", hostname, port);
-    return 1;
+    goto err;
   }
   if (connection->key_type == TB_INVALID_KEY_TYPE) {
     printf("The server did not negotiate token binding\n");
-    return 1;
+    goto err;
   }
-  char* etld_plus1 = getETLDPlus1(hostname);
+  etld_plus1 = getETLDPlus1(hostname);
   printf("eTLD+1=%s\n", etld_plus1);
-  Oracle* oracle = readOracleKeys();
-  CookieJar* cookie_jar = readCookieJar();
-  char* tbheader =
+  oracle = readOracleKeys();
+  cookie_jar = readCookieJar();
+  tbheader =
       generateTokenBindingHeader(connection, oracle, etld_plus1, NULL);
-  char* cookies = findCookies(cookie_jar, hostname);
-  char* response;
+  cookies = findCookies(cookie_jar, hostname);
   if (type == HTTP_GET) {
     response =
         sendGetRequest(connection, hostname, port, path, tbheader, cookies);
@@ -762,6 +766,15 @@ int main(int argc, char** argv) {
   processSetCookies(cookie_jar, response, hostname);
   saveCookieJar(cookie_jar);
   saveOracleKeys(oracle);
+  ret = 0;
+
+err:
+  if (hostname != NULL) {
+    free(hostname);
+  }
+  if (path != NULL) {
+    free(path);
+  }
   closeConnection(connection);
-  return 0;
+  return ret;
 }
