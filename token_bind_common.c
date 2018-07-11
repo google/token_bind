@@ -198,7 +198,7 @@ static void setNegotiatedVersion(SSL* ssl, uint8_t major_version,
 /* getNegotiatedVersion retrieves the negotiated major and minor version from
    |ssl|.  The major version number is written to out[0], and and the minor
    version number is written to out[1]. */
-static void getNegotiatedVersion(SSL* ssl, uint8_t* out) {
+void getNegotiatedVersion(SSL* ssl, uint8_t* out) {
   uintptr_t version =
       (uintptr_t)SSL_get_ex_data(ssl, ssl_ex_data_index_negotiated_version);
   out[0] = version;
